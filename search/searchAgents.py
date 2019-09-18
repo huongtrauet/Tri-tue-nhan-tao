@@ -296,7 +296,7 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        return (self.startingPosition, [])
+        return (self.startingPosition, []) 
         util.raiseNotDefined()
 
     def isGoalState(self, state):
@@ -309,7 +309,7 @@ class CornersProblem(search.SearchProblem):
         if position in self.corners:
             if position not in Visited_corners:
                 Visited_corners.append(position)
-            return len(Visited_corners)==4
+            return len(Visited_corners)==4 
         else:
             return False
         util.raiseNotDefined()
@@ -488,7 +488,10 @@ def foodHeuristic(state, problem):
     #print foodGrid
     "*** YOUR CODE HERE ***"
     foodList = foodGrid.asList()
-    return max([mazeDistance(position, food, problem.startingGameState) for food in foodList]) if len(foodList)>0 else 0
+    if len(foodList) == 0:
+        return 0
+    else:
+        return max([mazeDistance(position, food, problem.startingGameState) for food in foodList])
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"

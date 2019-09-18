@@ -88,23 +88,18 @@ def depthFirstSearch(problem):
     # print "Start's successors:", problem.getSuccessors(problem.getStartState())
     # """
     #util.raiseNotDefined()
-    #Declare a Stack and list
     Frontier = util.Stack()
     Visited = []
-    #The begin state
     begin = problem.getStartState()
     Frontier.push((begin, []))
     while Frontier.isEmpty() == 0:
-      #Consider the top item of the Stack
       state, actions = Frontier.pop()
 
       if state not in Visited:
         if problem.isGoalState(state):
-          #print "Found Goal with DFS"
           return actions
         else:
           Visited.append(state)
-          # Add child of the state to the Stack
           for next_branch in problem.getSuccessors(state)[::-1]:
             Frontier.push((next_branch[0], actions+[next_branch[1]]))
 
@@ -114,17 +109,16 @@ def breadthFirstSearch(problem):
     Frontier = util.Queue()
     Visited = []
     begin = problem.getStartState()
-    Frontier.push((begin, []))#??
+    Frontier.push((begin, []))
     while Frontier.isEmpty() == 0:
       state, actions = Frontier.pop()
       if state not in Visited:
         if problem.isGoalState(state):
-          #print "Found Goal with BFS"
           return actions
         else:
           Visited.append(state)
           #print problem.getSuccessors(state)
-          for next_branch in problem.getSuccessors(state):#??
+          for next_branch in problem.getSuccessors(state):
             Frontier.push((next_branch[0], actions+[next_branch[1]]))
 
 def uniformCostSearch(problem):
@@ -148,7 +142,6 @@ def uniformCostSearch(problem):
     while not Frontier.isEmpty():
       state, actions = Frontier.pop()
       if problem.isGoalState(state):
-        #print "Found Goal with UCS"
         return actions
       if state not in Visited:
         Visited.append(state)
@@ -186,7 +179,6 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     while not Frontier.isEmpty():
       state, actions = Frontier.pop()
       if problem.isGoalState(state):
-        #print "Found Goal with Astar"
         return actions
       if state not in Visited:
         Visited.append(state)
