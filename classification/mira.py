@@ -60,63 +60,54 @@ class MiraClassifier:
         datum is a counter from features to values for those features
         representing a vector of values.
         """
-        weights = []
-        maxAccuracy = 0
-        selectedC = Cgrid[0]
-        finalWeights=0
+        "*** YOUR CODE HERE ***"
+        max_acc, max_C, max_weights = max([self.get_accuracy_c_weight( c, trainingData, trainingLabels, validationData, validationLabels ) for c in Cgrid])
+        self.weights = max_weights
 
-        for c in Cgrid:
-            self.initializeWeightsToZero()
+    def get_accuracy_c_weight(self, c, trainingData, trainingLabels, validationData, validationLabels ):
+        weights = self.weights.copy()
+        max_acc, max_weights = float('-inf'), None
+        for iteration in range(self.max_iterations):
+            print "Starting iteration ", iteration, "..."
+            for i in range(len(trainingData)):
+                f = trainingData[i]
+                ytrue = trainingLabels[i]
+                score_max, ypred = max([
+                    (f * weights[y],y) for y in self.legalLabels])
+                if ypred != ytrue:
+                    tau = self.get_tau(c, weights[ypred], weights[ytrue], f)
+                    ftau = f.copy()
+                    for key in ftau.keys():
+                        ftau[key] = 1.0 * ftau[key] * tau
+                    weights[ytrue] += ftau
+                    weights[ypred] -= ftau
+            accuracy = self.get_accuracy(weights, validationData, validationLabels)
+            if accuracy > max_acc:
+                max_acc = accuracy
+                max_weights = weights.copy()
+            print "iteration", iteration, "c =", c, "accuracy =", accuracy
+        return max_acc, c, max_weights
 
-            for iteration in range(self.max_iterations):
-                for i in range(len(trainingData)):
-                    y_value = self.classify([trainingData[i]])[0]
-                    # print y_value
-                    if y_value!=trainingLabels[i]:
-                        t = (((self.weights[y_value] - self.weights[trainingLabels[i]])*trainingData[i]) + 1.0)/(2*(trainingData[i]*trainingData[i]))
-                        t_final = min(t,c)
-
-                        
-
-                        for key in trainingData[i]:
-                            # print "key : "+str(key)
-                            # print self.weights[trainingLabels[i]][key]
-                            # print trainingData[i][key]
-                            self.weights[trainingLabels[i]][key] += trainingData[i][key]*t_final
-                            # print self.weights[trainingLabels[i]][key]
-                            # print "************"
-                        for key in trainingData[i]:
-                            self.weights[y_value][key] -= trainingData[i][key]*t_final
-
-                        
-           
-            pred_labels = self.classify(validationData)
-            accuracy = self.getAccuracy(pred_labels,validationLabels)
-            
-            
-
-            if accuracy>maxAccuracy:
-
-                maxAccuracy = accuracy
-                selectedC = c
-                finalWeights = self.weights
-
-            weights.append(self.weights)
-
-      
-        self.weights = finalWeights
-
-
-
-    def getAccuracy(self,pred,truth):
-
-       
-        count = 0
-        for i in range(len(pred)):
-            if pred[i]==truth[i]:
+    
+    
+    def get_tau(self, c, wypred, wytrue, f):
+        sub = wypred-wytrue
+        nominator = sub*f+1
+        denominator = f*f*2
+        #print 'tmp', nominator, denominator, 1.0*nominator/denominator
+        return min(c, 1.0*nominator/denominator)
+    
+    
+    def get_accuracy(self, weights, validationData, validationLabels):
+        count = 0.0
+        for i in range(len(validationData)):
+            f = validationData[i]
+            ytrue = validationLabels[i]
+            score_max, ypred = max([
+                (f * weights[y],y) for y in self.legalLabels])
+            if ypred == ytrue:
                 count += 1
-
-        return (count/float(len(pred)))
+        return count / len(validationData)
 
     def classify(self, data ):
         """

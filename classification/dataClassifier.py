@@ -24,7 +24,6 @@ import samples
 import sys
 import util
 from pacman import GameState
-from util import manhattanDistance
 
 TEST_SET_SIZE = 100
 DIGIT_DATUM_WIDTH=28
@@ -79,12 +78,36 @@ def enhancedFeatureExtractorDigit(datum):
     features =  basicFeatureExtractorDigit(datum)
 
     "*** YOUR CODE HERE ***"
-    pixels = datum.getPixels()
-    
+
+    mat = features.copy()
+    num_white_regions = count_white_region(mat)
+    # print(num_white_regions)
+    features["1white"] = (num_white_regions == 1)
+    features["2white"] = (num_white_regions == 2)
+    features["3white"] = (num_white_regions == 3)
 
     return features
 
+def count_white_region(mat):
+    visited = util.Counter()
+    count = 0
+    for i in range(DIGIT_DATUM_WIDTH):
+        for j in range(DIGIT_DATUM_HEIGHT):
+            if mat[i,j] == 0:
+                dfs(i,j, mat) 
+                count += 1
 
+    return count
+
+def dfs(i,j, mat):
+    if(mat[i,j]) == 1:
+        return
+    mat[i,j] = 1
+    succ = [(1,0),(-1,0),(0,-1),(0,1)]
+    for s in succ:
+        new_pos = (s[0] + i, s[1] + j)
+        if new_pos[0] >= DIGIT_DATUM_WIDTH or new_pos[0] < 0 or new_pos[1] >= DIGIT_DATUM_HEIGHT or new_pos[1] < 0: continue
+        dfs(new_pos[0], new_pos[1], mat)
 
 def basicFeatureExtractorPacman(state):
     """
@@ -126,42 +149,32 @@ def enhancedPacmanFeatures(state, action):
     """
     features = util.Counter()
     "*** YOUR CODE HERE ***"
+    foods = state.getFood().asList()
+    # features['foodcount'] = len(foods)
+
+
+    successor = state.generateSuccessor(0, action)
+    pac_pos = successor.getPacmanPosition()
+    capsules = successor.getCapsules()
+    ghostStates = successor.getGhostStates()   
+
+    # nearest food 
+    tmp = [util.manhattanDistance(food, pac_pos) for food in foods]
+    if len(tmp)== 0: nearest_food = 0
+    else: nearest_food = min(tmp)
+    features["nearest_food"] = nearest_food
+   
+    # nearest BIG food 
+    tmp = [util.manhattanDistance(cap, pac_pos) for cap in capsules]
+    if len(tmp) == 0: nearest_big_food = 0
+    else: nearest_big_food = min(tmp)
+    features["nearest_big_food"] = nearest_big_food
     
-    closestFood = 999999
-    closestGhost=999999
-    closestActiveGhost = 9999999
-    activeGhostCount=0
-    avgGhostDist=0
-
-    state = state.generateSuccessor(0, action)
-    currentPos = state.getPacmanPosition()
-    ghostPositions = state.getGhostPositions()
-    
-    width,height = state.data.layout.width,state.data.layout.height
-    food = state.getFood().asList()
-
-    for f in food:
-        closestFood = min(closestFood, 1.0/manhattanDistance(currentPos, f))
-    # features['closestFood'] = closestFood
-
-    ghostStates=state.getGhostStates()
-    activeGhosts=0
-    for i in range(1,state.getNumAgents()):
-        if manhattanDistance(currentPos,ghostPositions[i-1])==0:
-            dist=0
-        else:
-            dist = manhattanDistance(currentPos,ghostPositions[i-1])
-    
-        closestGhost  = min(dist,closestGhost)
-        
-
-    # features['closestGhost'] = closestGhost
-    
-    capsules = state.getCapsules()
-    closestCapsule = 9999999
-    for i in range(len(capsules)):
-        closestCapsule = min(closestCapsule, manhattanDistance(currentPos,capsules[i]))
-
+    # nearest ghost
+    tmp = [util.manhattanDistance(ghost.getPosition(), pac_pos) for ghost in ghostStates]
+    if len(tmp) == 0: nearest_ghost = 0
+    else: nearest_ghost = min(tmp)
+    features["nearest_ghost"] = nearest_ghost*0.5
     return features
 
 
