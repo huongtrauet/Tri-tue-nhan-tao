@@ -50,20 +50,19 @@ class PerceptronClassifier:
         self.features = trainingData[0].keys() # could be useful later
         # DO NOT ZERO OUT YOUR WEIGHTS BEFORE STARTING TRAINING, OR
         # THE AUTOGRADER WILL LIKELY DEDUCT POINTS.
-
+        #print(trainingLabels[:10])
         for iteration in range(self.max_iterations):
             print "Starting iteration ", iteration, "..."
             for i in range(len(trainingData)):
-                y_value = self.classify([trainingData[i]])[0]
-
-
-                if y_value != trainingLabels[i]:
-                    self.weights[trainingLabels[i]] += trainingData[i]
-                    self.weights[y_value] -= trainingData[i]
-
-
-           
-    def classify(self, data, prin = False):
+                "*** YOUR CODE HERE ***"
+                #print(trainingData[i])
+                f = trainingData[i]
+                ytrue = trainingLabels[i]
+                score, ypred = max([(f*self.weights[y], y) for y in self.legalLabels])
+                if ypred != ytrue:
+                    self.weights[ytrue] += f
+                    self.weights[ypred] -= f
+    def classify(self, data ):
         """
         Classifies each datum as the label that most closely matches the prototype vector
         for that label.  See the project description for details.
@@ -76,7 +75,6 @@ class PerceptronClassifier:
             for l in self.legalLabels:
                 vectors[l] = self.weights[l] * datum
             guesses.append(vectors.argMax())
-
         return guesses
 
 
@@ -86,11 +84,7 @@ class PerceptronClassifier:
         """
         featuresWeights = []
 
-        weights = self.weights[label]
-
-        for i in range(100):
-            wt = weights.argMax()
-            featuresWeights.append(wt)
-            weights[wt]=-99999999
-
+        # "*** YOUR CODE HERE ***"
+        weights = sorted(self.weights[label].items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
+        featuresWeights = [i[0] for i in weights[:100]]
         return featuresWeights
